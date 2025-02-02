@@ -1,4 +1,3 @@
-import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, ImageBackground, Image } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Entypo from '@expo/vector-icons/Entypo';
@@ -9,10 +8,12 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 export default function App() {
   return (
     <View style={[styles.container]}>
-      <ImageBackground source={require("./assets/short.png")} style={[styles.container, { width: '100%', height: '100%' }]} >
+      <ImageBackground source={require("./assets/short.png")} style={{ width: '100%', height: '100%' }} >
+        {/* the whole screen is divided into two boxes */}
 
-        {/* Top row that includes Short, search and three dots */}
+        {/* Top-box */}
         <View style={{ marginTop: 10 }}>
+          {/* Top row that includes Shorts label, search and three dots */}
           <View style={[styles.notchmargin, { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 20, alignItems: "center" }]}>
             <Text style={{ color: "white", fontSize: 30, fontWeight: "bold" }}>Shorts</Text>
             <View style={{ flexDirection: "row", gap: 10 }}>
@@ -23,21 +24,22 @@ export default function App() {
 
           {/* Subscription, Live, Shopping buttons row */}
           <View style={{ flexDirection: "row", justifyContent: "space-around", marginHorizontal: 5, marginTop: 18, alignItems: "center" }}>
-            {/* how to make these buttons? */}
-            <View style={[styles.buttonswithIconandText, { width: 150 }]}>  <Entypo name="bell" size={24} color="black" />
-              <Text style={{ fontSize: 18 }}> Subscription</Text>
+            <View style={[styles.buttonswithIconandText, { width: 150 }]}>  
+              <Entypo name="bell" size={24} color="black" />
+              <Text style={{ fontSize: 18, marginLeft:4 }}>Subscription</Text>
             </View>
-            <View style={[styles.buttonswithIconandText, { width: 80 }]}>  <MaterialIcons name="live-tv" size={24} color="black" />
-              <Text style={{ fontSize: 18 }}> Live</Text>
+            <View style={[styles.buttonswithIconandText, { width: 80 }]}>  
+              <MaterialIcons name="live-tv" size={24} color="black" />
+              <Text style={{ fontSize: 18, marginLeft:4 }}>Live</Text>
             </View>
             <View style={[styles.buttonswithIconandText, { width: 120 }]}>
               <Entypo name="shopping-cart" size={24} color="black" />
-              <Text style={{ fontSize: 18 }}> Shopping</Text>
+              <Text style={{ fontSize: 18, marginLeft:4 }}>Shopping</Text>
             </View>
           </View>
         </View>
 
-
+        {/* Bottom-box */}
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
 
           {/* Channel icon, channel name, subscribe button and Video Title */}
@@ -71,15 +73,8 @@ export default function App() {
             </View>
             <Text style={styles.textstylingforBelowButtons}>Share</Text>
           </View>
-
-
         </View>
-
-
-
       </ImageBackground>
-
-      <StatusBar style="auto" />
     </View>
   );
 }
@@ -100,7 +95,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(200, 200, 200, 0.8)",
+    backgroundColor: "rgba(202, 202, 202, 0.8)",
   },
   iconCircle: {
     width: 55,
@@ -110,11 +105,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  textstylingforBelowButtons:{
+  textstylingforBelowButtons: {
     color: "black",
     fontSize: 18,
     marginVertical: 8,
     fontWeight: "500",
   },
-
 });
