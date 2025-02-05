@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Button, Pressable, TextInput, Switch } from 'react-native';
+import { StyleSheet, Text, View, Button, Pressable, TextInput, Switch, Platform } from 'react-native';
 import { useState } from 'react';
 
 export default function App() {
@@ -110,8 +110,9 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: (Platform.OS === 'ios') ? 'lightblue' : 'green',
     //marginTop:60,   
+
   },
   heading: {
     fontSize: 20,
