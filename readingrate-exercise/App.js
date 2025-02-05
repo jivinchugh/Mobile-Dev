@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Button, Pressable, TextInput } from 'react-native';
+import { StyleSheet, Text, View, Button, Pressable, TextInput, Switch } from 'react-native';
 import { useState } from 'react';
 
 export default function App() {
@@ -12,6 +12,11 @@ export default function App() {
   //setMsg - function to update the state variable
 
   const [readingrate, finalreadingrate] = useState("")
+
+
+  const [airplanemode, setAirplanemode] = useState(false)
+
+
   // click handler for the button
   const buttonPressed = () => {
     console.log("native button working")
@@ -50,8 +55,9 @@ export default function App() {
 
   const [namefromUI, setnamefromUI] = useState("")
   const getName = () => {
-    alert("Name entered is: " + namefromUI)
+    alert("Name entered is: " + namefromUI + "\nAirplane mode is: " + airplanemode)
     setnamefromUI("") //to make sure it gets empty after alert
+    setAirplanemode(false)
   }
 
   return (
@@ -89,6 +95,13 @@ export default function App() {
       <Text style={styles.text}>
         {readingrate}
       </Text>
+
+
+      
+      <Text>Turn Airplane mode on?</Text>
+      <Switch value={airplanemode} onValueChange={setAirplanemode} />
+
+
     </View>
   );
 }
