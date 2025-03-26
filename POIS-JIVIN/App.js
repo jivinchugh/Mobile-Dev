@@ -1,34 +1,17 @@
-//API KEY : 1ed187c2a05d4e3592f9799c9132a082
 import { StatusBar } from "expo-status-bar";
-import {
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-  Platform,
-  Button,
-} from "react-native";
+import { SafeAreaView, StyleSheet, Text, View, Platform } from "react-native";
 import { useState, useEffect } from "react";
 import MapView, { Marker, Callout } from "react-native-maps";
-
 import * as Location from "expo-location";
+import Ionicons from "@expo/vector-icons/Ionicons";
+
 export default function App() {
-  const [currLocationLabel, setCurrLocationLabel] = useState(
-    "curr location results here"
-  );
-  const [currentPosition, setCurrentPosition] = useState({
-    latitude: 43.7949433,
-    longitude: -79.3529767,
-  });
+  const [currLocationLabel, setCurrLocationLabel] = useState();
 
-  const [visibleMapRegion, setVisibleMapRegion] = useState({
-    latitude: 43.7949433,
-    longitude: -79.3529767,
-    latitudeDelta: 1,
-    longitudeDelta: 1,
-  });
+  const [currentPosition, setCurrentPosition] = useState(null);
+  const [visibleMapRegion, setVisibleMapRegion] = useState(null);
+  const [nearbyPlaces, setNearbyPlaces] = useState([]);
 
-  // use this funciton when the app loads
   useEffect(() => {
     requestPermissions(); // request permissions on every screen load
     getCurrLocation(); // this will make sure to get the current location on every screen load
@@ -50,9 +33,8 @@ export default function App() {
   };
 
   const getCurrLocation = async () => {
-    //was giving error while trying to execute without try catch block
     try {
-      console.log("DEBUG: getCurrLocation");
+      console.log("+++++++++++++++++ getCurrLocation");
       const location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
       });
@@ -66,53 +48,98 @@ export default function App() {
       setCurrLocationLabel(
         `Lat: ${location.coords.latitude},\n Lng: ${location.coords.longitude}`
       );
-
+      //update the currentPosition state variable
+      setCurrentPosition(currentCoords);
       //update the visibleMapRegion to the current location
       setVisibleMapRegion({
-        ...currentCoords,
+        latitude: currentCoords.latitude,
+        longitude: currentCoords.longitude,
+        latitudeDelta: 0.1,
+        longitudeDelta: 0.1,
       });
-      setCurrentPosition(currentCoords);
+      await fetchNearbyPlaces(currentCoords);
     } catch (error) {
       console.error("ERROR: Failed to get current location", error);
       setCurrLocationLabel("ERROR: Failed to retrieve current location.");
     }
+  };
 
-    //1. create state variable that stores marker position
-    //2. update state variable with lat/lng
-    //3. attach state variable to the marker component
-    //4. when state variable updates, marker will update
+  const fetchNearbyPlaces = async (coords) => {
+    try {
+      const CATEGORY1 = "catering.restaurant.indian";
+      const CATEGORY2 = "education.college";
+      const radius = 20000;
+      const limit = 20;
+      const apiKey = "1ed187c2a05d4e3592f9799c9132a082";
+
+      const url = `https://api.geoapify.com/v2/places?categories=${CATEGORY1},${CATEGORY2}&filter=circle:${coords.longitude},${coords.latitude},${radius}&limit=${limit}&apiKey=${apiKey}`;
+
+      const response = await fetch(url);
+      const data = await response.json(); //convert response to JSON
+
+      /*tried extracting data and that didn't work, 
+      so looked up to sample API response for endpoint and it was
+      {"type":"FeatureCollection","features":[{...},{...},{...}]}
+      so I used data.features to extract the data from the response
+      */
+      if (data.features) {
+        setNearbyPlaces(data.features);
+        console.log("Nearby Places:", data.features);
+      }
+    } catch (error) {
+      console.error("API fetch error:", error);
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.calloutTitle}>What's Nearby?</Text>
-      <Text style={styles.calloutDescription}>Let's try and look for catering.restaurant.indian and sport.stadium	 </Text>
+      <Text style={styles.calloutDescription}>
+        Let's try and look for catering.restaurant.indian and education.college
+      </Text>
       <MapView initialRegion={visibleMapRegion} style={styles.map}>
-        {/* Used to point the current location on the map, made the marker blue so that it is visible properly*/}
         {currentPosition && (
-          <Marker
-            coordinate={currentPosition}
-            title="Current Location"
-            description={currLocationLabel}
-            pinColor="blue"
-          />
+          <Marker coordinate={currentPosition} pinColor="blue">
+            <Callout tooltip>
+              <View style={styles.calloutContainer}>
+                <Text style={styles.calloutTitle}>Current Location</Text>
+                <Text style={styles.calloutDescription}>
+                  {currLocationLabel}
+                </Text>
+              </View>
+            </Callout>
+          </Marker>
         )}
 
-        {/*Sample Pop-up*/}
-        <Marker key={0} coordinate={{ latitude: 43.64, longitude: -79.37 }}>
-          <Callout tooltip>
-            <View style={styles.calloutContainer}>
-              <Text style={styles.calloutTitle}>
-                The Omni King Edward Hotel
-              </Text>
-              <Text style={styles.calloutDescription}>
-                37 King Street East, Toronto
-              </Text>
-            </View>
-          </Callout>
-        </Marker>
-      </MapView>
+        {nearbyPlaces.map((place, index) => {
+          const isSchool = place.properties.categories.includes("education");
+          const isRestaurant = place.properties.categories.includes("catering");
 
+          return (
+            <Marker
+              key={index}
+              coordinate={{
+                latitude: place.geometry.coordinates[1],
+                longitude: place.geometry.coordinates[0],
+              }}
+            >
+              {isSchool && <Ionicons name="school" size={30} color="black" />}
+              {isRestaurant && <Ionicons name="restaurant" size={30} color="black" />}
+
+              <Callout tooltip>
+                <View style={styles.calloutContainer}>
+                  <Text style={styles.calloutTitle}>
+                    {place.properties.name}
+                  </Text>
+                  <Text style={styles.calloutDescription}>
+                    {place.properties.address_line2}
+                  </Text>
+                </View>
+              </Callout>
+            </Marker>
+          );
+        })}
+      </MapView>
       <StatusBar style="auto" />
     </SafeAreaView>
   );
