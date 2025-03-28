@@ -1,7 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import {
   SafeAreaView,
-  Image,
   StyleSheet,
   Text,
   View,
@@ -79,6 +78,8 @@ export default function App() {
 
   const fetchNearbyPlaces = async () => {
     try {
+      //Note to self - this can be taken as a UI input if wanted for the user to 
+      // select category, radius, and limit, rather than hardcoding
       const CATEGORY1 = "catering.restaurant.indian";
       const CATEGORY2 = "education.college";
       const radius = 10000;
@@ -94,6 +95,15 @@ export default function App() {
         setNearbyPlaces(data.features);
         console.log("Nearby Places:", data.features);
         setShowNearbyPlaces(true);
+        /*
+        Note to self - this can be forced to re-render the map to ensure that all the logos are visible properly
+        but the problem I'm still facing, can be a tooltip problem is that, the tooltips after re-render
+        appear as a default red pin, and once I click that, the map keeps on moving up and 
+        then the logos appear once tooltip is out of the screen 
+        
+        setTimeout(() => {
+        setVisibleMapRegion({...visibleMapRegion});
+        }, 100);*/
       }
     } catch (error) {
       console.error("API fetch error:", error);
@@ -106,6 +116,8 @@ export default function App() {
       <Text style={styles.calloutDescription}>
         Let's try and look for catering.restaurant.indian and education.college
       </Text>
+
+      {/*A show nearby button which would help to render the icons and callout tooltips on the map*/}
       <Button title={"Show Nearby"} onPress={fetchNearbyPlaces} />
       <MapView region={visibleMapRegion} style={styles.map}>
         {currentPosition && (
@@ -126,8 +138,9 @@ export default function App() {
             const isSchool =
               location.properties.categories.includes("education");
             const isRestaurant =
-              location.properties.categories.includes("catering");
+              location.properties.categories.includes("catering.restaurant.indian");
 
+          
             return (
               <Marker
                 key={index}
