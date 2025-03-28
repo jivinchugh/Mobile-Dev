@@ -1,5 +1,13 @@
 import { StatusBar } from "expo-status-bar";
-import { SafeAreaView, StyleSheet, Text, View, Platform } from "react-native";
+import {
+  SafeAreaView,
+  Image,
+  StyleSheet,
+  Text,
+  View,
+  Platform,
+  Button,
+} from "react-native";
 import { useState, useEffect } from "react";
 import MapView, { Marker, Callout } from "react-native-maps";
 import * as Location from "expo-location";
@@ -7,17 +15,23 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 
 export default function App() {
   const [currLocationLabel, setCurrLocationLabel] = useState();
-
   const [currentPosition, setCurrentPosition] = useState(null);
-  const [visibleMapRegion, setVisibleMapRegion] = useState(null);
+  const [visibleMapRegion, setVisibleMapRegion] = useState({
+    //default location set as - 255 Main Street, Toronto, ON, Canada
+    latitude: 43.687310,
+    longitude: -79.300650,
+    latitudeDelta: 0.1,
+    longitudeDelta: 0.1,
+  });
   const [nearbyPlaces, setNearbyPlaces] = useState([]);
+  const [showNearbyPlaces, setShowNearbyPlaces] = useState(false);
 
   useEffect(() => {
     requestPermissions(); // request permissions on every screen load
     getCurrLocation(); // this will make sure to get the current location on every screen load
   }, []);
 
-  // add a function to ask for permissions
+  //function to ask for permissions
   const requestPermissions = async () => {
     try {
       const permissionsObject =
@@ -25,7 +39,7 @@ export default function App() {
       if (permissionsObject.status === "granted") {
         alert("Location permission granted!");
       } else {
-        alert("Permission denied or not provided");
+        alert("Permission denied!");
       }
     } catch (err) {
       console.log(err);
@@ -57,34 +71,29 @@ export default function App() {
         latitudeDelta: 0.1,
         longitudeDelta: 0.1,
       });
-      await fetchNearbyPlaces(currentCoords);
     } catch (error) {
       console.error("ERROR: Failed to get current location", error);
       setCurrLocationLabel("ERROR: Failed to retrieve current location.");
     }
   };
 
-  const fetchNearbyPlaces = async (coords) => {
+  const fetchNearbyPlaces = async () => {
     try {
       const CATEGORY1 = "catering.restaurant.indian";
       const CATEGORY2 = "education.college";
-      const radius = 20000;
-      const limit = 20;
+      const radius = 10000;
+      const limit = 15;
       const apiKey = "1ed187c2a05d4e3592f9799c9132a082";
 
-      const url = `https://api.geoapify.com/v2/places?categories=${CATEGORY1},${CATEGORY2}&filter=circle:${coords.longitude},${coords.latitude},${radius}&limit=${limit}&apiKey=${apiKey}`;
+      const url = `https://api.geoapify.com/v2/places?categories=${CATEGORY1},${CATEGORY2}&filter=circle:${currentPosition.longitude},${currentPosition.latitude},${radius}&limit=${limit}&apiKey=${apiKey}`;
 
       const response = await fetch(url);
-      const data = await response.json(); //convert response to JSON
+      const data = await response.json();
 
-      /*tried extracting data and that didn't work, 
-      so looked up to sample API response for endpoint and it was
-      {"type":"FeatureCollection","features":[{...},{...},{...}]}
-      so I used data.features to extract the data from the response
-      */
       if (data.features) {
         setNearbyPlaces(data.features);
         console.log("Nearby Places:", data.features);
+        setShowNearbyPlaces(true);
       }
     } catch (error) {
       console.error("API fetch error:", error);
@@ -97,7 +106,8 @@ export default function App() {
       <Text style={styles.calloutDescription}>
         Let's try and look for catering.restaurant.indian and education.college
       </Text>
-      <MapView initialRegion={visibleMapRegion} style={styles.map}>
+      <Button title={"Show Nearby"} onPress={fetchNearbyPlaces} />
+      <MapView region={visibleMapRegion} style={styles.map}>
         {currentPosition && (
           <Marker coordinate={currentPosition} pinColor="blue">
             <Callout tooltip>
@@ -111,35 +121,38 @@ export default function App() {
           </Marker>
         )}
 
-        {nearbyPlaces.map((place, index) => {
-          const isSchool = place.properties.categories.includes("education");
-          const isRestaurant = place.properties.categories.includes("catering");
+        {showNearbyPlaces &&
+          nearbyPlaces.map((location, index) => {
+            const isSchool =
+              location.properties.categories.includes("education");
+            const isRestaurant =
+              location.properties.categories.includes("catering");
 
-          return (
-            <Marker
-              key={index}
-              coordinate={{
-                latitude: place.geometry.coordinates[1],
-                longitude: place.geometry.coordinates[0],
-              }}
-            >
-              {isSchool && <Ionicons name="school" size={30} color="black" />}
-              {isRestaurant && <Ionicons name="restaurant" size={30} color="black" />}
-
-              <Callout tooltip>
-                <View style={styles.calloutContainer}>
-                  <Text style={styles.calloutTitle}>
-                    {place.properties.name}
-                  </Text>
-                  <Text style={styles.calloutDescription}>
-                    {place.properties.address_line2}
-                  </Text>
-                </View>
-              </Callout>
-            </Marker>
-          );
-        })}
+            return (
+              <Marker
+                key={index}
+                coordinate={{
+                  latitude: location.geometry.coordinates[1],
+                  longitude: location.geometry.coordinates[0],
+                }}
+              >
+                {isSchool && <Ionicons name="school" size={30} color="black" />}
+                {isRestaurant && <Ionicons name="restaurant" size={30} color="black" />}
+                <Callout tooltip>
+                  <View style={styles.calloutContainer}>
+                    <Text style={styles.calloutTitle}>
+                      {location.properties.name}
+                    </Text>
+                    <Text style={styles.calloutDescription}>
+                      {location.properties.address_line2}
+                    </Text>
+                  </View>
+                </Callout>
+              </Marker>
+            );
+          })}
       </MapView>
+
       <StatusBar style="auto" />
     </SafeAreaView>
   );
