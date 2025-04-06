@@ -4,8 +4,8 @@ import { initializeApp } from "firebase/app";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 //1. import firestore service from firebase/firestore
-import { getFirestore } from "firebase/firestore/lite";
-
+import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth"
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyDgAKxmP1xNQk4mXLkSJDhkPdS3wdTVF60",
@@ -22,5 +22,6 @@ const app = initializeApp(firebaseConfig);
 
 //2. initialize firestore service
 const db = getFirestore(app);
+const auth = getAuth(app)
 //3. export firestore service for use in other files
-export { db };
+export { db, auth };
